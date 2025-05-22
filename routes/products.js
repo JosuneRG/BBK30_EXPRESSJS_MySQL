@@ -2,14 +2,31 @@ const express = require('express');
 const router = express.Router();
 const ProductController = require('../controllers/ProductController');
 
-// Crear tabla
-router.get('/create', ProductController.createTable);
+// GET todos los productos
+router.get('/', ProductController.getAll);
 
-// CRUD
-router.post('/addProduct', ProductController.addProduct);
-router.put('/updateProduct/:id', ProductController.update);
-router.get('/showProduct', ProductController.getAll);
-router.get('/showProductBy_id/id/:id', ProductController.getById);
-router.get('/showProductDesc', ProductController.getDesc);
-router.get('/showProductName/nameProduct/:nameProduct', ProductController.getByName);
-router.delete('/deleteProductBy_id/id/:id', ProductController.delete);
+// Otros endpoints
+
+// http://localhost:3000/products/desc
+router.get('/desc', ProductController.getDesc);
+
+// http://localhost:3000/products/:id
+router.get('/:id', ProductController.getById);
+
+// http://localhost:3000/products/name/:nameProduct
+router.get('/name/:nameProduct', ProductController.getByName);
+
+// http://localhost:3000/products
+router.post('/', ProductController.addProduct);
+
+// http://localhost:3000/products/:id
+router.put('/:id', ProductController.update);
+
+// http://localhost:3000/products/:id
+router.delete('/:id', ProductController.delete);
+
+// http://localhost:3000/products/create/table
+router.get('/create/table', ProductController.createTable);
+
+// Exporta correctamente el router
+module.exports = router;

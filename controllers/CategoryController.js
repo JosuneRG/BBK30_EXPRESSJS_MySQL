@@ -1,6 +1,8 @@
 const db = require('../config/database');
 
 const CategoryController = {
+
+   // Crea la tabla 'category' si no existe
   createTable: (req, res) => {
     const sql = `CREATE TABLE category (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -12,6 +14,7 @@ const CategoryController = {
     });
   },
 
+  // Agrega una nueva categoría a la base de datos
   addCategory: (req, res) => {
     const { nameCategory } = req.body;
     const sql = "INSERT INTO category (nameCategory) VALUES (?)";
@@ -21,6 +24,7 @@ const CategoryController = {
     });
   },
 
+  // Obtiene todas las categorías
   getAll: (req, res) => {
     db.query("SELECT * FROM category", (err, result) => {
       if (err) throw err;
@@ -28,6 +32,7 @@ const CategoryController = {
     });
   },
 
+  // Obtiene una categoría por su ID
   getById: (req, res) => {
     const { id } = req.params;
     const sql = "SELECT * FROM category WHERE id = ?";
@@ -38,6 +43,7 @@ const CategoryController = {
     });
   },
 
+  // Actualiza una categoría por su ID
   update: (req, res) => {
     const { id } = req.params;
     const { nameCategory } = req.body;
@@ -50,4 +56,5 @@ const CategoryController = {
   }
 };
 
+// Exportamos el controlador para que pueda usarse en las rutas
 module.exports = CategoryController;
