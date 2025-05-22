@@ -1,0 +1,330 @@
+const express = require("express");
+const app = express();
+const mysql = require('mysql2');
+const port = 3000;
+
+app.use(express.json());
+
+//Ejer 1
+//Creamos la conexión a BBDD
+const db = mysql.createConnection({
+host : 'localhost',
+user : 'root',
+password : 'root',
+database: 'shop'
+});
+
+//Conexion establecida
+db.connect();
+
+//Creamos la BBDD
+app.get('/createdb', (req, res) => {
+    const sql = 'CREATE DATABASE shop'
+    
+    db.query(sql, (err, result) => {
+        
+        if (err) throw err
+            console.log(result)
+        
+            res.send('Database created...')
+    });
+
+});
+
+// Iniciamos el servidor
+app.listen(port, ()=>{
+   console.log(`Servidor iniciado en el puerto ${port}`);
+});
+
+//Creamos la tabla Producto
+app.get('/createTableProduct', (req, res) => {
+    const sql =
+    ' CREATE TABLE Product (id INT AUTO_INCREMENT PRIMARY KEY, nameProdruct VARCHAR(255) NOT NULL, price DECIMAL(10,2) NOT NULL)'
+    
+    db.query(sql, (err, result) => {
+
+        if (err) throw err
+            console.log(result)
+
+        res.send('Tabla de productos creada.')
+    });
+});
+
+//Creamos la tabla Categoria
+app.get('/createTableCategory', (req, res) => {
+    const sql =
+    ' CREATE TABLE category (id INT AUTO_INCREMENT PRIMARY KEY, nameCategory VARCHAR(255) NOT NULL)'
+    
+    db.query(sql, (err, result) => {
+
+        if (err) throw err
+            console.log(result)
+
+        res.send('Tabla de categoria creada.')
+    });
+});
+
+// Tabla intermedia (muchos a muchos)
+app.get('/createTableProductCategories', (req, res) => {
+    const sql = `
+    CREATE TABLE product_categories (
+        product_id INT,
+        category_id INT,
+        PRIMARY KEY (product_id, category_id),
+        FOREIGN KEY (product_id) REFERENCES product(id),
+        FOREIGN KEY (category_id) REFERENCES category(id)
+    )
+    `;
+    
+    db.query(sql, (err, result) => {
+        
+        if (err) throw err;
+            res.send('Tabla productos-categoria creada');
+    });
+    
+});
+
+//Ejer 2
+// Crea un endpoint para añadir un producto nuevo y añade 2 productos nuevos desde postman
+// Ruta POST:
+app.post('/addProduct',(req, res) => {
+    const {nameProdruct, price} = req.body;
+
+    const sql = 'INSERT INTO product (nameProdruct, price) VALUES (?, ?)';
+
+    // Ejecutar la consulta
+    db.query(sql, [nameProdruct, price], (err, result) => {
+        
+        //Manejar resultado
+        if (err) throw err;
+            res.send('Producto añadido correctamente');
+    });
+});
+
+// Crea un endpoint para crear una categoría y añade 2 categorías nuevas desde postman
+app.post('/addCategory',(req, res) => {
+    const {nameCategory} = req.body;
+
+    const sql = 'INSERT INTO category (nameCategory) VALUES (?)';
+
+    // Ejecutar la consulta
+    db.query(sql, [nameCategory], (err, result) => {
+         
+        //Manejar resultado
+        if (err) throw err;
+            res.send('Categoria añadida correctamente');
+    });
+});
+
+//   Ejercicio 3
+// Crea un endpoint para actualizar un producto.
+app.put('/updateProduct/:id', (req, res) => {
+    const { id } = req.params;
+    const { nameProdruct, price } = req.body;
+
+    let fields = [];
+    let values = [];
+
+    if (nameProdruct) {
+        fields.push("nameProdruct = ?");
+        values.push(nameProdruct);
+    }
+
+    if (price) {
+        fields.push("price = ?");
+        values.push(price);
+    }
+
+    if (fields.length === 0) {
+        return res.status(400).send("Debes proporcionar al menos un campo para actualizar (nameProdruct o price).");
+    }
+
+    const sql = `UPDATE product SET ${fields.join(', ')} WHERE id = ?`;
+    values.push(id);
+
+    db.query(sql, values, (err, result) => {
+        if (err) throw err;
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send("Producto no encontrado");
+        }
+
+        res.send("Producto actualizado correctamente");
+    });
+});
+
+
+// Crea un endpoint para actualizar una categoría.
+app.put('/updateCategory/:id',(req, res) => {
+    const {id} = req.params;
+    const {nameCategory} = req.body;
+
+    const sql = 'update category SET nameCategory = ? WHERE id = ?';
+
+    // Ejecutar la consulta
+    db.query(sql, [nameCategory, id], (err, result) => {
+        
+        if (err) throw err; 
+        
+        //Manejar resultado
+        if (result.affectedRows === 0) {
+            return res.status(404).send('Categoría no encontrada');
+        }
+
+        res.send('Categoría actualizada correctamente');
+    });
+});
+
+
+//   Ejercicio 4
+// Crea un endpoint que muestre todos los productos
+app.get('/showProduct',(req, res) => {
+
+    const sql = 'SELECT * FROM product';
+
+    // Ejecutar la consulta
+    db.query(sql, (err, result) => {
+        
+        //Manejar resultado
+        if (err) throw err;
+           res.json(result)
+    });
+});
+
+// Crea un endpoint que muestre todas las categorías
+app.get('/showCategory',(req, res) => {
+
+    const sql = 'SELECT * FROM category';
+
+    // Ejecutar la consulta
+    db.query(sql, (err, result) => {
+        
+        //Manejar resultado
+        if (err) throw err;
+           res.json(result)
+    });
+});
+
+// Crea un endpoint que muestra todos los productos con sus categorías
+app.get('/showProductCategory',(req, res) => {
+
+    const sql = `SELECT 
+                    product.id AS productId, 
+                    product.nameProdruct, 
+                    product.price, 
+                    category.nameCategory 
+                    FROM product 
+                    
+                    INNER JOIN product_categories 
+                    ON product.id = product_categories.product_id
+                    
+                    INNER JOIN category 
+                    ON category.id = product_categories.category_id;`;
+
+    // Ejecutar la consulta
+    db.query(sql, (err, result) => {
+        
+        //Manejar resultado
+        if (err) throw err;
+           res.json(result)
+    });
+});
+
+// Crea un endpoint donde puedas seleccionar un producto por id
+app.get('/showProductBy_id/id/:id',(req, res) => {
+    const { id } = req.params;
+    const sql = 'SELECT * FROM product where id = ?';
+
+    // Ejecutar la consulta
+    db.query(sql, [id], (err, result) => {
+        
+        if (err) {
+            console.error("Error al buscar producto:", err);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        if (result.length === 0) {
+            return res.status(404).send('Producto no encontrado');
+        }
+
+        res.json(result[0]); // solo uno
+    });
+});
+
+// Crea un endpoint que muestre de forma descendente los productos.
+app.get('/showProductDesc',(req, res) => {
+
+    const sql = 'SELECT * FROM product ORDER BY ID DESC';
+
+    // Ejecutar la consulta
+    db.query(sql,(err, result) => {
+        
+       //Manejar resultado
+        if (err) throw err;
+           res.json(result)
+    });
+});
+
+// Crea un endpoint donde puedas seleccionar una categoría por id
+app.get('/showCategoryBy_id/id/:id',(req, res) => {
+    const { id } = req.params;
+    const sql = 'SELECT * FROM category where id = ?';
+
+    // Ejecutar la consulta
+    db.query(sql, [id], (err, result) => {
+        
+        if (err) {
+            console.error("Error al buscar producto:", err);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        if (result.length === 0) {
+            return res.status(404).send('Producto no encontrado');
+        }
+
+        res.json(result[0]); // solo uno
+    });
+});
+
+// Crea un endpoint donde puedas buscar un producto por su nombre
+app.get('/showProductName/nameProduct/:nameProduct',(req, res) => {
+    const { nameProduct } = req.params;
+    const sql = 'SELECT * FROM product WHERE nameProduct = ?';
+
+    // Ejecutar la consulta
+    db.query(sql, [nameProduct], (err, result) => {
+        
+        if (err) {
+            console.error("Error al buscar producto:", err);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        if (result.length === 0) {
+            return res.status(404).send('Producto no encontrado');
+        }
+
+        res.json(result[0]); // solo uno
+    });
+});
+
+
+// Crea un endpoint donde puedas eliminar un producto por su id
+app.delete('/deleteProductBy_id/id/:id',(req, res) => {
+    const { id } = req.params;
+    const sql = 'delete FROM product where id = ?';
+
+    // Ejecutar la consulta
+    db.query(sql, [id], (err, result) => {
+        
+        if (err) {
+            console.error("Error al buscar producto:", err);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        if (result.length === 0) {
+            return res.status(404).send('Producto no encontrado');
+        }
+
+        res.json(result[0]); // solo uno
+    });
+});

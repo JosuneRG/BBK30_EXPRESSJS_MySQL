@@ -27,6 +27,7 @@ Crea un endpoint donde puedas buscar un producto por su nombre
   Ejercicio 4
 Crea un endpoint donde puedas eliminar un producto por su id
 
+______________________________________________________________________________
 
 1.2.MVC
 Implementa el patrón de diseño MVC
@@ -72,5 +73,10 @@ Crea un OrderController.js que contenga todas las acciones de los orders
 
  Implementa MVC en Users
 Crea un archivo users.js dentro de una carpeta routes que contenga todas las rutas de users
-Crea un UserController.js que contenga todas las acciones de los  users -->
+Crea un UserController.js que contenga todas las acciones de los  users
 
+1.3. Github
+
+Subir el proyecto a un repositorio en github
+Hacer commits con frecuencia
+Hacer un pequeño readme -->
