@@ -39,7 +39,8 @@ app.listen(port, ()=>{
 //Creamos la tabla Producto
 app.get('/createTableProduct', (req, res) => {
     const sql =
-    ' CREATE TABLE Product (id INT AUTO_INCREMENT PRIMARY KEY, nameProdruct VARCHAR(255) NOT NULL, price DECIMAL(10,2) NOT NULL)'
+    ' CREATE TABLE Product (id INT AUTO_INCREMENT PRIMARY KEY, 
+nameProdruct VARCHAR(255) NOT NULL, price DECIMAL(10,2) NOT NULL)'
     
     db.query(sql, (err, result) => {
 
